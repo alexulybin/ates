@@ -1,0 +1,22 @@
+POST http://127.0.0.1:8062/api/tasks
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+
+{
+  "description": "Fix computer"
+}
+
+###
+POST http://127.0.0.1:8062/api/tasks/complete/402880ec89eee3bf0189ef02c0ef0000
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyMSIsInJvbGVzIjoibWFuYWdlciIsInVzZXJJZCI6IjIiLCJpYXQiOjE2OTE5MzcwMTgsImV4cCI6MTY5MTk0MDYxOH0.baDBJU-p2lTVz-nIALE1NrEZ-Jrv795RqXaPTL2llNk
+
+###
+POST http://127.0.0.1:8062/api/tasks/reassign-all
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyMSIsInJvbGVzIjoibWFuYWdlciIsInVzZXJJZCI6IjIiLCJpYXQiOjE2OTE5MzcwMTgsImV4cCI6MTY5MTk0MDYxOH0.baDBJU-p2lTVz-nIALE1NrEZ-Jrv795RqXaPTL2llNk
+
+###
+GET http://127.0.0.1:8062/api/tasks/my-tasks
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyMSIsInJvbGVzIjoibWFuYWdlciIsInVzZXJJZCI6IjIiLCJpYXQiOjE2OTE5MzcwMTgsImV4cCI6MTY5MTk0MDYxOH0.baDBJU-p2lTVz-nIALE1NrEZ-Jrv795RqXaPTL2llNk
