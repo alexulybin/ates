@@ -1,0 +1,43 @@
+POST http://127.0.0.1:8061/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "kesha",
+  "password": "test"
+}
+
+###
+POST http://127.0.0.1:8061/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "karlo",
+  "password": "test"
+}
+
+###
+POST http://127.0.0.1:8061/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "kiki",
+  "password": "test"
+}
+
+###
+POST http://127.0.0.1:8061/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "appadmin",
+  "password": "adminpass"
+}
+
+###
+POST http://127.0.0.1:8061/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "manager1",
+  "password": "managerpass"
+}

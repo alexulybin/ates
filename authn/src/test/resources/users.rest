@@ -1,0 +1,41 @@
+###
+POST http://127.0.0.1:8061/api/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+
+{
+  "login": "kesha",
+  "firstName": "Инокентий",
+  "lastName": "Попугов",
+  "email": "kesha@ates.com",
+  "password": "test",
+  "role": "worker"
+}
+
+###
+POST http://127.0.0.1:8061/api/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+
+{
+  "login": "karlo",
+  "firstName": "Карло",
+  "lastName": "Попугаев",
+  "email": "kaflo@ates.com",
+  "password": "test",
+  "role": "worker"
+}
+
+###
+POST http://127.0.0.1:8061/api/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+
+{
+  "login": "kiki",
+  "firstName": "Кики",
+  "lastName": "Попугессова",
+  "email": "kiki@ates.com",
+  "password": "test",
+  "role": "worker"
+}
