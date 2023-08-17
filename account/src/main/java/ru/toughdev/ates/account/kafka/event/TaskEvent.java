@@ -1,4 +1,4 @@
-package ru.toughdev.ates.tasktracker.kafka;
+package ru.toughdev.ates.account.kafka.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,7 @@ public class TaskEvent {
     private UUID publicId;
     private String description;
     private UUID assigneeId;
-    private Integer fee;
-    private Integer reward;
+    private Long fee;
+    private Long reward;
 }
 
