@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import ru.toughdev.ates.tasktracker.kafka.event.UserEvent;
 import ru.toughdev.ates.tasktracker.model.User;
 import ru.toughdev.ates.tasktracker.repository.UserRepository;
 

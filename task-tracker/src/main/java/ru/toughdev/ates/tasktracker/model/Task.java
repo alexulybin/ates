@@ -32,8 +32,8 @@ public class Task {
     private final UUID publicId = UUID.randomUUID();
     private String description;
     private Long assigneeId;
-    private Integer fee;
-    private Integer reward;
+    private Long fee;
+    private Long reward;
     private Boolean completed = false;
 
     @CreatedDate

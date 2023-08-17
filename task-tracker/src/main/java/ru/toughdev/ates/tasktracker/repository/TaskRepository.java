@@ -6,8 +6,8 @@ import ru.toughdev.ates.tasktracker.model.Task;
 import java.util.List;
 import java.util.UUID;
 
-public interface TaskRepository extends JpaRepository<Task, String> {
+public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    Task getByPublicIdAndAssigneeId(UUID publicId, UUID assigneeId);
-    List<Task> getByAssigneeId(UUID assigneeId);
+    Task getByPublicIdAndAssigneeId(UUID publicId, Long assigneeId);
+    List<Task> getByAssigneeId(Long assigneeId);
 }

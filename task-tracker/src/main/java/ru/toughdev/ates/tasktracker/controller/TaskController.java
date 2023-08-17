@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.toughdev.ates.tasktracker.dto.CreateTaskDto;
 import ru.toughdev.ates.tasktracker.kafka.MessageProducer;
-import ru.toughdev.ates.tasktracker.kafka.TaskEvent;
+import ru.toughdev.ates.tasktracker.kafka.event.TaskEvent;
 import ru.toughdev.ates.tasktracker.model.Task;
 import ru.toughdev.ates.tasktracker.model.User;
 import ru.toughdev.ates.tasktracker.repository.TaskRepository;
@@ -45,12 +45,15 @@ public class TaskController {
     public @ResponseBody Task createTask(@RequestBody CreateTaskDto dto) throws JsonProcessingException {
         var random = new Random();
 
+        var fee = random.nextInt(maxFee - minFee) + minFee;
+        var reward = random.nextInt(maxReward - minReward) + minReward;
+
         var user = getAssignee();
         var task = Task.builder()
                 .assigneeId(user.getId())
                 .description(dto.getDescription())
-                .fee(random.nextInt(maxFee - minFee) + minFee)
-                .reward(random.nextInt(maxReward - minReward) + minReward)
+                .fee(Integer.valueOf(fee).longValue())
+                .reward(Integer.valueOf(reward).longValue())
                 .build();
         var saved = taskRepository.saveAndFlush(task);
 
@@ -84,23 +87,25 @@ public class TaskController {
     }
 
     @PostMapping("/complete/{taskId}")
-    public void completeTask(@PathVariable UUID taskId, Authentication authentication) throws JsonProcessingException {
-        var userPublicId = ((JwtUser) authentication.getPrincipal()).getPublicId();
-        var task = taskRepository.getByPublicIdAndAssigneeId(taskId, userPublicId);
+    public void completeTask(@PathVariable String taskId, Authentication authentication) throws JsonProcessingException {
+        var login = ((JwtUser) authentication.getPrincipal()).getUsername();
+        var user = userRepository.getByLogin(login);
+        var task = taskRepository.getByPublicIdAndAssigneeId(UUID.fromString(taskId), user.getId());
+
         if (task != null) {
             task.setCompleted(true);
             taskRepository.saveAndFlush(task);
 
             var event = TaskEvent.builder()
                     .eventType("TaskCompleted")
-                    .publicId(taskId)
-                    .assigneeId(userPublicId)
+                    .publicId(UUID.fromString(taskId))
+                    .assigneeId(user.getPublicId())
                     .build();
             messageProducer.sendMessage(event, "task-lifecycle");
 
             log.info("Task completed " + task);
         } else {
-            log.info("Task not found. taskId: " + taskId + " assigneeId: " + userPublicId);
+            log.info("Task not found. taskId: " + taskId + " assigneeId: " + user.getPublicId());
         }
     }
 
@@ -136,7 +141,8 @@ public class TaskController {
 
     @GetMapping("/my-tasks")
     public @ResponseBody List<Task> getMyTasks(Authentication authentication) {
-        var userPublicId = ((JwtUser) authentication.getPrincipal()).getPublicId();
-        return taskRepository.getByAssigneeId(userPublicId);
+        var login = ((JwtUser) authentication.getPrincipal()).getUsername();
+        var user = userRepository.getByLogin(login);
+        return taskRepository.getByAssigneeId(user.getId());
     }
 }

@@ -6,8 +6,8 @@ CREATE TABLE TASKS
     public_id       VARCHAR(32) NOT NULL,
     description     VARCHAR(100),
     assignee_id     VARCHAR(32),
-    fee             INT,
-    reward          VARCHAR(100),
+    fee             INT8,
+    reward          INT8,
     completed       BOOL,
     created         TIMESTAMP,
     updated         TIMESTAMP

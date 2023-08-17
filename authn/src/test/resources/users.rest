@@ -1,7 +1,7 @@
 ###
 POST http://127.0.0.1:8061/api/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJjMTQ0Y2Y1Yi0yNmY0LTQ3ZmMtODgwMy0wZTkyZGNjZmMxNTkiLCJpYXQiOjE2OTIyMDU3MjQsImV4cCI6MTY5MzA2OTcyNH0.mjh5pLoa_K3JFKh6dsxqXSSj0qChv_KoI1M4IflvJ94
 
 {
   "login": "kesha",
@@ -15,7 +15,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiY
 ###
 POST http://127.0.0.1:8061/api/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJjMTQ0Y2Y1Yi0yNmY0LTQ3ZmMtODgwMy0wZTkyZGNjZmMxNTkiLCJpYXQiOjE2OTIyMDU3MjQsImV4cCI6MTY5MzA2OTcyNH0.mjh5pLoa_K3JFKh6dsxqXSSj0qChv_KoI1M4IflvJ94
 
 {
   "login": "karlo",
@@ -29,7 +29,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiY
 ###
 POST http://127.0.0.1:8061/api/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJiMWMxN2RlZC00NTJjLTRlMTQtOWZjNi04Yjk3ZGMwNDE3ZGMiLCJpYXQiOjE2OTIxODI1NTAsImV4cCI6MTY5MjE4NjE1MH0.x9JY5vznrSsexRY4RYGzIllgntUWdT6JiPdUgDM_naI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJjMTQ0Y2Y1Yi0yNmY0LTQ3ZmMtODgwMy0wZTkyZGNjZmMxNTkiLCJpYXQiOjE2OTIyMDU3MjQsImV4cCI6MTY5MzA2OTcyNH0.mjh5pLoa_K3JFKh6dsxqXSSj0qChv_KoI1M4IflvJ94
 
 {
   "login": "kiki",
