@@ -1,0 +1,9 @@
+GET http://127.0.0.1:8063/api/account/worker/current-payments
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZXNoYSIsInJvbGVzIjoid29ya2VyIiwidXNlcklkIjoiYmRhYmQyOTQtNjlkYi00YmQ5LWE5MmUtM2JiM2Q5OTQ0ZDM5IiwiaWF0IjoxNjkyNDcwNjMyLCJleHAiOjE2OTMzMzQ2MzJ9.9rNH3S15ExwEx4QoP86hrKewhvEtN_Jwfk6NlrWWFEc
+
+###
+GET http://127.0.0.1:8063/api/account/admin/total-payments
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcHBhZG1pbiIsInJvbGVzIjoiYWRtaW4iLCJ1c2VySWQiOiJjMTQ0Y2Y1Yi0yNmY0LTQ3ZmMtODgwMy0wZTkyZGNjZmMxNTkiLCJpYXQiOjE2OTIyMDU3MjQsImV4cCI6MTY5MzA2OTcyNH0.mjh5pLoa_K3JFKh6dsxqXSSj0qChv_KoI1M4IflvJ94
+

@@ -1,21 +1,20 @@
-package ru.toughdev.ates.tasktracker.kafka;
+package ru.toughdev.ates.account.kafka.event;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEvent {
+public class AccountEvent {
 
     private String eventType;
 
-    private UUID publicId;
-    private String login;
-    private String email;
-    private String role;
+    private UUID userPublicId;
+    private Long balance;
 }
-
