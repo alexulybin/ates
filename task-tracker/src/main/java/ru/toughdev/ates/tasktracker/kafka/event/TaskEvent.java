@@ -20,5 +20,6 @@ public class TaskEvent {
     private UUID assigneeId;
     private Long fee;
     private Long reward;
+    private Boolean completed;
 }
 
