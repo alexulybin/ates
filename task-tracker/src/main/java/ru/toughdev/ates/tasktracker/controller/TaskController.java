@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import ru.toughdev.ates.event.task.TaskEventV1;
 import ru.toughdev.ates.tasktracker.dto.CreateTaskDto;
 import ru.toughdev.ates.tasktracker.kafka.MessageProducer;
-import ru.toughdev.ates.tasktracker.kafka.event.TaskEvent;
 import ru.toughdev.ates.tasktracker.model.Task;
 import ru.toughdev.ates.tasktracker.model.User;
 import ru.toughdev.ates.tasktracker.repository.TaskRepository;
@@ -57,20 +57,20 @@ public class TaskController {
                 .build();
         var saved = taskRepository.saveAndFlush(task);
 
-        var event = TaskEvent.builder()
-                .eventType("TaskCreated")
-                .publicId(saved.getPublicId())
-                .description(saved.getDescription())
-                .assigneeId(user.getPublicId())
-                .fee(saved.getFee())
-                .reward(saved.getReward())
+        var event = TaskEventV1.newBuilder()
+                .setEventType("TaskCreated")
+                .setPublicId(saved.getPublicId().toString())
+                .setDescription(saved.getDescription())
+                .setAssigneeId(user.getPublicId().toString())
+                .setFee(saved.getFee())
+                .setReward(saved.getReward())
                 .build();
         messageProducer.sendMessage(event, "task-stream");
 
-        event = TaskEvent.builder()
-                .eventType("TaskAssigned")
-                .publicId(saved.getPublicId())
-                .assigneeId(user.getPublicId())
+        event = TaskEventV1.newBuilder()
+                .setEventType("TaskAssigned")
+                .setPublicId(saved.getPublicId().toString())
+                .setAssigneeId(user.getPublicId().toString())
                 .build();
         messageProducer.sendMessage(event, "task-lifecycle");
 
@@ -96,17 +96,17 @@ public class TaskController {
             task.setCompleted(true);
             taskRepository.saveAndFlush(task);
 
-            var eventUpdated = TaskEvent.builder()
-                    .eventType("TaskUpdated")
-                    .publicId(UUID.fromString(taskId))
-                    .completed(true)
+            var eventUpdated = TaskEventV1.newBuilder()
+                    .setEventType("TaskUpdated")
+                    .setPublicId(taskId)
+                    .setCompleted(true)
                     .build();
             messageProducer.sendMessage(eventUpdated, "task-stream");
 
-            var eventCompleted = TaskEvent.builder()
-                    .eventType("TaskCompleted")
-                    .publicId(UUID.fromString(taskId))
-                    .assigneeId(user.getPublicId())
+            var eventCompleted = TaskEventV1.newBuilder()
+                    .setEventType("TaskCompleted")
+                    .setPublicId(taskId)
+                    .setAssigneeId(user.getPublicId().toString())
                     .build();
             messageProducer.sendMessage(eventCompleted, "task-lifecycle");
 
@@ -132,13 +132,13 @@ public class TaskController {
         taskRepository.saveAllAndFlush(tasks);
 
         for (var task : tasks) {
-            var event = TaskEvent.builder()
-                    .eventType("TaskReassigned")
-                    .publicId(task.getPublicId())
-                    .assigneeId(users.stream()
+            var event = TaskEventV1.newBuilder()
+                    .setEventType("TaskReassigned")
+                    .setPublicId(task.getPublicId().toString())
+                    .setAssigneeId(users.stream()
                             .filter(us -> us.getId().equals(task.getAssigneeId()))
                             .findFirst()
-                            .orElseThrow().getPublicId()
+                            .orElseThrow().getPublicId().toString()
                     )
                     .build();
             messageProducer.sendMessage(event, "task-lifecycle");

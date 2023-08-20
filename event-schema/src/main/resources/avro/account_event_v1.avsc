@@ -1,0 +1,21 @@
+{
+     "type": "record",
+     "namespace": "ru.toughdev.ates.event.account",
+     "name": "AccountEventV1",
+     "version": "1",
+     "fields": [
+        { "name": "eventType",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "userPublicId",
+          "type": "string",
+          "logicalType": "uuid"
+        },
+        { "name": "balance",
+          "type": "long"
+        }
+     ]
+}

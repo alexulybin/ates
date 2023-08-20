@@ -21,6 +21,7 @@
         <module>task-tracker</module>
         <module>account</module>
         <module>analytics</module>
+        <module>event-schema</module>
     </modules>
 
     <build>

@@ -1,0 +1,40 @@
+{
+     "type": "record",
+     "namespace": "ru.toughdev.ates.event.payment",
+     "name": "PaymentEventV1",
+     "version": "1",
+     "fields": [
+        { "name": "eventType",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "publicId",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "userPublicId",
+          "type": "string",
+          "logicalType": "uuid"
+        },
+        { "name": "taskPublicId",
+          "type": "string",
+          "logicalType": "uuid"
+        },
+        { "name": "amount",
+          "type": "long"
+        },
+        { "name": "type",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "dateTime",
+          "type": "long"
+        }
+     ]
+}
