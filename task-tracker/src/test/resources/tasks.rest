@@ -3,7 +3,16 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZXNoYSIsInJvbGVzIjoid29ya2VyIiwidXNlcklkIjoiMDMzNGY0NDctMDlkYS00YWJmLTg5NzktZTY3NTk1OGJhZDY1IiwiaWF0IjoxNjkyMjA1NzcwLCJleHAiOjE2OTMwNjk3NzB9.rCKwyQ4kdkbZsykISu_8aAxA-GNml6enNj2cxRZ3jY8
 
 {
-  "description": "Fix computer"
+  "description": "[POPUG-112] Fix computer"
+}
+
+###
+POST http://127.0.0.1:8062/api/tasks/v1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZXNoYSIsInJvbGVzIjoid29ya2VyIiwidXNlcklkIjoiMDMzNGY0NDctMDlkYS00YWJmLTg5NzktZTY3NTk1OGJhZDY1IiwiaWF0IjoxNjkyMjA1NzcwLCJleHAiOjE2OTMwNjk3NzB9.rCKwyQ4kdkbZsykISu_8aAxA-GNml6enNj2cxRZ3jY8
+
+{
+"description": "Fix computer"
 }
 
 ###

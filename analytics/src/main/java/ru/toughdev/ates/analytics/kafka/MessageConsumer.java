@@ -1,8 +1,8 @@
 package ru.toughdev.ates.analytics.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,7 @@ import ru.toughdev.ates.analytics.repository.UserRepository;
 import ru.toughdev.ates.event.account.AccountEventV1;
 import ru.toughdev.ates.event.payment.PaymentEventV1;
 import ru.toughdev.ates.event.task.TaskEventV1;
+import ru.toughdev.ates.event.task.TaskEventV2;
 import ru.toughdev.ates.event.user.UserEventV1;
 
 import java.time.Instant;
@@ -36,7 +37,7 @@ public class MessageConsumer {
     private final AccountRepository accountRepository;
 
     @KafkaListener(topics = "user-stream")
-    public void receiveUserStreamMessage(@Payload UserEventV1 event) throws JsonProcessingException {
+    public void receiveUserStreamMessage(@Payload UserEventV1 event) {
         log.info("Message received : " + event);
 
         if (event.getEventType().equals("UserCreated")) {
@@ -60,9 +61,52 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "task-stream")
-    public void receiveTaskStreamMessage(@Payload TaskEventV1 event) throws JsonProcessingException {
-        log.info("Message received : " + event);
+    public void receiveTaskStreamMessage(@Payload SpecificRecord record) {
+        log.info("Message received : " + record);
 
+        if (record instanceof TaskEventV1) {
+            handleTaskStreamEvent((TaskEventV1) record);
+        }
+
+        if (record instanceof TaskEventV2) {
+            handleTaskStreamEvent((TaskEventV2) record);
+        }
+    }
+
+    private void handleTaskStreamEvent(TaskEventV1 event) {
+        switch (event.getEventType()) {
+            case "TaskCreated":
+                var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
+                var task = Task.builder()
+                        .publicId(UUID.fromString(event.getPublicId()))
+                        .assigneeId(user.getId())
+                        .description(event.getDescription())
+                        .fee(event.getFee())
+                        .reward(event.getReward())
+                        .build();
+
+                taskRepository.save(task);
+                log.info("Task created " + task.getPublicId());
+                break;
+
+            case "TaskUpdated":
+                task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
+                var assigneeId = event.getAssigneeId() == null ? null :
+                        userRepository.getByPublicId(UUID.fromString(event.getAssigneeId())).getId();
+
+                task.setCompleted(Optional.ofNullable(event.getCompleted()).orElse(task.getCompleted()));
+                task.setAssigneeId(Optional.ofNullable(assigneeId).orElse(task.getAssigneeId()));
+                task.setDescription(Optional.ofNullable(event.getDescription()).orElse(task.getDescription()));
+
+                taskRepository.save(task);
+                log.info("Task updated " + task.getPublicId());
+                break;
+        }
+    }
+
+    // код для обработки V1 и V2 в данном случае пректически иденичный
+    // но в общем случае он может отличаться
+    private void handleTaskStreamEvent(TaskEventV2 event) {
         switch (event.getEventType()) {
             case "TaskCreated":
                 var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
@@ -94,7 +138,7 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "payment-stream")
-    public void receivePaymentStreamMessage(@Payload PaymentEventV1 event) throws JsonProcessingException {
+    public void receivePaymentStreamMessage(@Payload PaymentEventV1 event) {
         log.info("Message received : " + event);
 
         if (event.getEventType().equals("PaymentCreated")) {
@@ -120,7 +164,7 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "account-stream")
-    public void receiveAccountStreamMessage(@Payload AccountEventV1 event) throws JsonProcessingException {
+    public void receiveAccountStreamMessage(@Payload AccountEventV1 event) {
         log.info("Message received : " + event);
 
         if (event.getEventType().equals("AccountUpdated")) {
