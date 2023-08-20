@@ -1,0 +1,38 @@
+{
+     "type": "record",
+     "namespace": "ru.toughdev.ates.event.user",
+     "name": "UserEventV1",
+     "version": "1",
+     "fields": [
+        { "name": "eventType",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "publicId",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "login",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "email",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "role",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        }
+     ]
+}

@@ -1,17 +1,11 @@
 package ru.toughdev.ates.analytics.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import ru.toughdev.ates.analytics.kafka.event.AccountEvent;
-import ru.toughdev.ates.analytics.kafka.event.PaymentEvent;
-import ru.toughdev.ates.analytics.kafka.event.TaskEvent;
-import ru.toughdev.ates.analytics.kafka.event.UserEvent;
 import ru.toughdev.ates.analytics.model.Account;
 import ru.toughdev.ates.analytics.model.Payment;
 import ru.toughdev.ates.analytics.model.Task;
@@ -20,9 +14,16 @@ import ru.toughdev.ates.analytics.repository.AccountRepository;
 import ru.toughdev.ates.analytics.repository.PaymentRepository;
 import ru.toughdev.ates.analytics.repository.TaskRepository;
 import ru.toughdev.ates.analytics.repository.UserRepository;
+import ru.toughdev.ates.event.account.AccountEventV1;
+import ru.toughdev.ates.event.payment.PaymentEventV1;
+import ru.toughdev.ates.event.task.TaskEventV1;
+import ru.toughdev.ates.event.user.UserEventV1;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.TimeZone;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -35,15 +36,12 @@ public class MessageConsumer {
     private final AccountRepository accountRepository;
 
     @KafkaListener(topics = "user-stream")
-    public void receiveUserStreamMessage(@Payload String message) throws JsonProcessingException {
-        log.info("Message received : " + message);
-
-        var mapper = new ObjectMapper();
-        var event = mapper.readValue(message, UserEvent.class);
+    public void receiveUserStreamMessage(@Payload UserEventV1 event) throws JsonProcessingException {
+        log.info("Message received : " + event);
 
         if (event.getEventType().equals("UserCreated")) {
             var user = User.builder()
-                    .publicId(event.getPublicId())
+                    .publicId(UUID.fromString(event.getPublicId()))
                     .login(event.getLogin())
                     .email(event.getEmail())
                     .role(event.getRole())
@@ -62,17 +60,14 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "task-stream")
-    public void receiveTaskStreamMessage(@Payload String message) throws JsonProcessingException {
-        log.info("Message received : " + message);
-
-        var mapper = new ObjectMapper();
-        var event = mapper.readValue(message, TaskEvent.class);
+    public void receiveTaskStreamMessage(@Payload TaskEventV1 event) throws JsonProcessingException {
+        log.info("Message received : " + event);
 
         switch (event.getEventType()) {
             case "TaskCreated":
-                var user = userRepository.getByPublicId(event.getAssigneeId());
+                var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
                 var task = Task.builder()
-                        .publicId(event.getPublicId())
+                        .publicId(UUID.fromString(event.getPublicId()))
                         .assigneeId(user.getId())
                         .description(event.getDescription())
                         .fee(event.getFee())
@@ -84,9 +79,9 @@ public class MessageConsumer {
                 break;
 
             case "TaskUpdated":
-                task = taskRepository.getByPublicId(event.getPublicId());
+                task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
                 var assigneeId = event.getAssigneeId() == null ? null :
-                        userRepository.getByPublicId(event.getAssigneeId()).getId();
+                        userRepository.getByPublicId(UUID.fromString(event.getAssigneeId())).getId();
 
                 task.setCompleted(Optional.ofNullable(event.getCompleted()).orElse(task.getCompleted()));
                 task.setAssigneeId(Optional.ofNullable(assigneeId).orElse(task.getAssigneeId()));
@@ -99,23 +94,24 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "payment-stream")
-    public void receivePaymentStreamMessage(@Payload String message) throws JsonProcessingException {
-        log.info("Message received : " + message);
-
-        var mapper = new ObjectMapper();
-        var event = mapper.readValue(message, PaymentEvent.class);
+    public void receivePaymentStreamMessage(@Payload PaymentEventV1 event) throws JsonProcessingException {
+        log.info("Message received : " + event);
 
         if (event.getEventType().equals("PaymentCreated")) {
-            var user = userRepository.getByPublicId(event.getUserPublicId());
-            var task = taskRepository.getByPublicId(event.getPublicId());
+            var user = userRepository.getByPublicId(UUID.fromString(event.getUserPublicId()));
+            var task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
+
+            var dateTime =
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getDateTime()),
+                            TimeZone.getTimeZone("UTC").toZoneId());
 
             var paymentFee = Payment.builder()
-                    .publicId(event.getPublicId())
+                    .publicId(UUID.fromString(event.getPublicId()))
                     .taskId(task.getId())
                     .userId(user.getId())
                     .amount(event.getAmount())
                     .type(event.getType())
-                    .dateTime(event.getDateTime())
+                    .dateTime(dateTime)
                     .build();
 
             paymentRepository.save(paymentFee);
@@ -124,14 +120,11 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "account-stream")
-    public void receiveAccountStreamMessage(@Payload String message) throws JsonProcessingException {
-        log.info("Message received : " + message);
-
-        var mapper = new ObjectMapper();
-        var event = mapper.readValue(message, AccountEvent.class);
+    public void receiveAccountStreamMessage(@Payload AccountEventV1 event) throws JsonProcessingException {
+        log.info("Message received : " + event);
 
         if (event.getEventType().equals("AccountUpdated")) {
-            var user = userRepository.getByPublicId(event.getUserPublicId());
+            var user = userRepository.getByPublicId(UUID.fromString(event.getUserPublicId()));
             var account = accountRepository.getByUserId(user.getId());
 
             account.setBalance(event.getBalance());

@@ -7,11 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import ru.toughdev.ates.account.kafka.MessageProducer;
-import ru.toughdev.ates.account.kafka.event.AccountEvent;
-import ru.toughdev.ates.account.kafka.event.PaymentEvent;
 import ru.toughdev.ates.account.repository.AccountRepository;
 import ru.toughdev.ates.account.repository.PaymentRepository;
 import ru.toughdev.ates.account.repository.UserRepository;
+import ru.toughdev.ates.event.account.AccountEventV1;
 
 import javax.transaction.Transactional;
 import java.util.UUID;
@@ -57,10 +56,10 @@ public class SchedulerConfig {
     }
 
     private void sendAccountEvent(String topic, String type, UUID userPublicId, Long balance) throws JsonProcessingException {
-        var accountEvent = AccountEvent.builder()
-                .eventType(type)
-                .userPublicId(userPublicId)
-                .balance(balance)
+        var accountEvent = AccountEventV1.newBuilder()
+                .setEventType(type)
+                .setUserPublicId(userPublicId.toString())
+                .setBalance(balance)
                 .build();
 
         messageProducer.sendMessage(accountEvent, topic);

@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.toughdev.ates.authn.dto.RegisterUserDto;
 import ru.toughdev.ates.authn.kafka.MessageProducer;
-import ru.toughdev.ates.authn.kafka.UserEvent;
 import ru.toughdev.ates.authn.model.User;
 import ru.toughdev.ates.authn.repository.UserRepository;
+import ru.toughdev.ates.event.user.UserEventV1;
 
 @Slf4j
 @RestController
@@ -41,9 +41,9 @@ public class UserController {
 
         var registeredUser = userRepository.saveAndFlush(user);
 
-        var event = new UserEvent(
+        var event = new UserEventV1(
                 "UserCreated",
-                user.getPublicId(),
+                user.getPublicId().toString(),
                 user.getLogin(),
                 user.getEmail(),
                 user.getRole()
