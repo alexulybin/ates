@@ -96,12 +96,19 @@ public class TaskController {
             task.setCompleted(true);
             taskRepository.saveAndFlush(task);
 
-            var event = TaskEvent.builder()
+            var eventUpdated = TaskEvent.builder()
+                    .eventType("TaskUpdated")
+                    .publicId(UUID.fromString(taskId))
+                    .completed(true)
+                    .build();
+            messageProducer.sendMessage(eventUpdated, "task-stream");
+
+            var eventCompleted = TaskEvent.builder()
                     .eventType("TaskCompleted")
                     .publicId(UUID.fromString(taskId))
                     .assigneeId(user.getPublicId())
                     .build();
-            messageProducer.sendMessage(event, "task-lifecycle");
+            messageProducer.sendMessage(eventCompleted, "task-lifecycle");
 
             log.info("Task completed " + task);
         } else {

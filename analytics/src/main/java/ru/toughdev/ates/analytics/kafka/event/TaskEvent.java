@@ -1,4 +1,4 @@
-package ru.toughdev.ates.account.kafka.event;
+package ru.toughdev.ates.analytics.kafka.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

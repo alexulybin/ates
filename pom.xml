@@ -20,6 +20,7 @@
         <module>authn</module>
         <module>task-tracker</module>
         <module>account</module>
+        <module>analytics</module>
     </modules>
 
     <build>
