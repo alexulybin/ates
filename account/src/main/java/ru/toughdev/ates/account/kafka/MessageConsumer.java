@@ -3,6 +3,7 @@ package ru.toughdev.ates.account.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import ru.toughdev.ates.account.repository.TaskRepository;
 import ru.toughdev.ates.account.repository.UserRepository;
 import ru.toughdev.ates.event.payment.PaymentEventV1;
 import ru.toughdev.ates.event.task.TaskEventV1;
+import ru.toughdev.ates.event.task.TaskEventV2;
 import ru.toughdev.ates.event.user.UserEventV1;
 
 import java.time.LocalDateTime;
@@ -56,9 +58,19 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "task-stream")
-    public void receiveTaskStreamMessage(@Payload TaskEventV1 event) throws JsonProcessingException {
-        log.info("Message received : " + event);
+    public void receiveTaskStreamMessage(@Payload SpecificRecord record) throws JsonProcessingException {
+        log.info("Message received : " + record);
 
+        if (record instanceof TaskEventV1) {
+            handleTaskStreamEvent((TaskEventV1) record);
+        }
+
+        if (record instanceof TaskEventV2) {
+            handleTaskStreamEvent((TaskEventV2) record);
+        }
+    }
+
+    private void handleTaskStreamEvent(TaskEventV1 event) {
         if (event.getEventType().equals("TaskCreated")) {
             var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
             var task = Task.builder()
@@ -73,10 +85,72 @@ public class MessageConsumer {
         }
     }
 
-    @KafkaListener(topics = "task-lifecycle")
-    public void receiveTaskLifecycleMessage(@Payload TaskEventV1 event) throws JsonProcessingException {
-        log.info("Message received : " + event);
+    // код для обработки V2 отличается как минимум сохранением jiraId
+    private void handleTaskStreamEvent(TaskEventV2 event) {
+        if (event.getEventType().equals("TaskCreated")) {
+            var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
+            var task = Task.builder()
+                    .publicId(UUID.fromString(event.getPublicId()))
+                    .assigneeId(user.getId())
+                    .description(event.getDescription())
+                    .jiraId(event.getJiraId())
+                    .fee(event.getFee())
+                    .reward(event.getReward())
+                    .build();
+            taskRepository.save(task);
+            log.info("Task created " + task.getPublicId());
+        }
+    }
 
+    @KafkaListener(topics = "task-lifecycle")
+    public void receiveTaskLifecycleMessage(@Payload SpecificRecord record) throws JsonProcessingException {
+        log.info("Message received : " + record);
+
+        if (record instanceof TaskEventV1) {
+            handleTaskLifecycleEvent((TaskEventV1) record);
+        }
+
+        if (record instanceof TaskEventV2) {
+            handleTaskLifecycleEvent((TaskEventV2) record);
+        }
+    }
+
+    private void handleTaskLifecycleEvent(TaskEventV1 event) throws JsonProcessingException {
+        var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
+        var task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
+
+        switch (event.getEventType()) {
+            case "TaskCompleted":
+                var payment = savePayment(task.getId(), user.getId(), task.getReward(), "reward");
+
+                sendPaymentEvent("payment-stream", "PaymentCreated", payment.getPublicId(),
+                        task.getPublicId(), user.getPublicId(), payment.getAmount(), payment.getType());
+
+                // на будущее, пока никем не консьюмится
+                sendPaymentEvent("payment-lifecycle", "RewardPaid", payment.getPublicId(),
+                        task.getPublicId(), user.getPublicId(), null, null);
+
+                log.info("Reward paid " + payment.getTaskId());
+                break;
+            case "TaskAssigned":
+            case "TaskReassigned":
+                payment = savePayment(task.getId(), user.getId(), task.getFee(), "fee");
+
+                sendPaymentEvent("payment-stream", "PaymentCreated", payment.getPublicId(),
+                        task.getPublicId(), user.getPublicId(), payment.getAmount(), payment.getType());
+
+                // на будущее, пока никем не консьюмится
+                sendPaymentEvent("payment-lifecycle", "FeePaid", payment.getPublicId(),
+                        task.getPublicId(), user.getPublicId(), null, null);
+
+                log.info("Fee paid " + payment.getTaskId());
+                break;
+        }
+    }
+
+    // код для обработки V1 и V2 в данном случае пректически иденичный
+    // но в общем случае он может отличаться
+    private void handleTaskLifecycleEvent(TaskEventV2 event) throws JsonProcessingException {
         var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
         var task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
 

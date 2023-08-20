@@ -31,6 +31,7 @@ public class Task {
 
     private final UUID publicId = UUID.randomUUID();
     private String description;
+    private String jiraId;
     private Long assigneeId;
     private Long fee;
     private Long reward;

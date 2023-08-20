@@ -13,7 +13,7 @@
 
     <groupId>ru.tough-dev.ates</groupId>
     <artifactId>event-schema</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <properties>
         <maven.compiler.source>14</maven.compiler.source>
@@ -75,8 +75,12 @@
                     </schemaRegistryUrls>
                     <subjects>
                         <user-stream-value>${project.basedir}/src/main/resources/avro/user_event_v1.avsc</user-stream-value>
+
                         <task-stream-value>${project.basedir}/src/main/resources/avro/task_event_v1.avsc</task-stream-value>
+                        <task-stream-value>${project.basedir}/src/main/resources/avro/task_event_v2.avsc</task-stream-value>
                         <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task_event_v1.avsc</task-lifecycle-value>
+                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task_event_v2.avsc</task-lifecycle-value>
+
                         <payment-stream-value>${project.basedir}/src/main/resources/avro/payment_event_v1.avsc</payment-stream-value>
                         <payment-lifecycle-value>${project.basedir}/src/main/resources/avro/payment_event_v1.avsc</payment-lifecycle-value>
                         <account-stream-value>${project.basedir}/src/main/resources/avro/account_event_v1.avsc</account-stream-value>

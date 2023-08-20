@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.toughdev.ates.event.task.TaskEventV1;
+import ru.toughdev.ates.event.task.TaskEventV2;
 import ru.toughdev.ates.tasktracker.dto.CreateTaskDto;
 import ru.toughdev.ates.tasktracker.kafka.MessageProducer;
 import ru.toughdev.ates.tasktracker.model.Task;
@@ -41,7 +42,11 @@ public class TaskController {
     private final UserRepository userRepository;
     private final MessageProducer messageProducer;
 
-    @PostMapping
+    /**
+     * Старая реализация создания таски с отправкой события V1
+     * Оставлено для тестирования
+     */
+    @PostMapping("/v1")
     public @ResponseBody Task createTask(@RequestBody CreateTaskDto dto) throws JsonProcessingException {
         var random = new Random();
 
@@ -77,6 +82,58 @@ public class TaskController {
         log.info("Task created " + saved);
 
         return saved;
+    }
+
+    /**
+     * Создание таски с отправкой события V2
+     */
+    @PostMapping
+    public @ResponseBody Task createTaskV2(@RequestBody CreateTaskDto dto) throws JsonProcessingException {
+        var random = new Random();
+
+        var fee = random.nextInt(maxFee - minFee) + minFee;
+        var reward = random.nextInt(maxReward - minReward) + minReward;
+
+        var jiraId = getJiraId(dto.getDescription());
+
+        var user = getAssignee();
+        var task = Task.builder()
+                .assigneeId(user.getId())
+                .description(dto.getDescription())
+                .jiraId(jiraId)
+                .fee(Integer.valueOf(fee).longValue())
+                .reward(Integer.valueOf(reward).longValue())
+                .build();
+        var saved = taskRepository.saveAndFlush(task);
+
+        var event = TaskEventV2.newBuilder()
+                .setEventType("TaskCreated")
+                .setPublicId(saved.getPublicId().toString())
+                .setDescription(saved.getDescription())
+                .setJiraId(jiraId)
+                .setAssigneeId(user.getPublicId().toString())
+                .setFee(saved.getFee())
+                .setReward(saved.getReward())
+                .build();
+        messageProducer.sendMessage(event, "task-stream");
+
+        event = TaskEventV2.newBuilder()
+                .setEventType("TaskAssigned")
+                .setPublicId(saved.getPublicId().toString())
+                .setAssigneeId(user.getPublicId().toString())
+                .build();
+        messageProducer.sendMessage(event, "task-lifecycle");
+
+        log.info("Task created " + saved);
+
+        return saved;
+    }
+
+    private String getJiraId(String description) {
+        var ind1 = description.indexOf("[");
+        var ind2 = description.indexOf("]");
+
+        return description.substring(ind1+1, ind2);
     }
 
     private User getAssignee() {
