@@ -1,6 +1,5 @@
 package ru.toughdev.ates.account.scheduler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -10,10 +9,10 @@ import ru.toughdev.ates.account.kafka.MessageProducer;
 import ru.toughdev.ates.account.repository.AccountRepository;
 import ru.toughdev.ates.account.repository.PaymentRepository;
 import ru.toughdev.ates.account.repository.UserRepository;
-import ru.toughdev.ates.event.account.AccountEventV1;
+import ru.toughdev.ates.event.account.AccountBalanceUpdatedEventV1;
+import ru.toughdev.ates.event.account.DailyRewardPaidEventV1;
 
 import javax.transaction.Transactional;
-import java.util.UUID;
 
 @Slf4j
 @Configuration
@@ -29,39 +28,35 @@ public class SchedulerConfig {
 
     @Scheduled(cron = "0 0 23 * * *")
     @Transactional
-    public void calculateBalance() throws JsonProcessingException {
+    public void calculateBalance() {
         var payments = paymentRepository.getCurrentTotalPaymentsForAllUsers();
         for (var payment : payments) {
             var userId = payment.getUserId();
             var user = userRepository.getById(userId);
             var account = accountRepository.getByUserId(userId);
-            var userBalance = account.getBalance() + payment.getTotalAmount();
-            long newBalance = 0L;
+            var dailyBalance = account.getBalance() + payment.getTotalAmount();
 
-            if (userBalance <= 0) {
-                newBalance = userBalance;
-                accountRepository.setBalanceForUser(userBalance, userId);
-            } else {
-                accountRepository.setBalanceForUser(newBalance, userId);
+            var newBalance = dailyBalance < 0 ? dailyBalance : 0L;
+            accountRepository.setBalanceForUser(newBalance, userId);
 
+            var accountBalanceEvent = AccountBalanceUpdatedEventV1.newBuilder()
+                    .setEventType("AccountBalanceUpdated")
+                    .setUserPublicId(user.getPublicId().toString())
+                    .setBalance(newBalance)
+                    .build();
+            messageProducer.sendMessage(accountBalanceEvent, "account-stream");
+
+            if (dailyBalance > 0) {
                 // mock для отправки письма на email
                 log.info("Payment notification sent to user " + userId);
 
-                // на будущее, пока никем не консьюмится
-                sendAccountEvent("account-lifecycle", "DailyRewardPaid", user.getPublicId(), userBalance);
+                var dailyRewardEvent = DailyRewardPaidEventV1.newBuilder()
+                        .setEventType("DailyRewardPaid")
+                        .setUserPublicId(user.getPublicId().toString())
+                        .setAmount(dailyBalance)
+                        .build();
+                messageProducer.sendMessage(dailyRewardEvent, "account-lifecycle");
             }
-
-            sendAccountEvent("account-stream", "AccountUpdated", user.getPublicId(), newBalance);
         }
-    }
-
-    private void sendAccountEvent(String topic, String type, UUID userPublicId, Long balance) throws JsonProcessingException {
-        var accountEvent = AccountEventV1.newBuilder()
-                .setEventType(type)
-                .setUserPublicId(userPublicId.toString())
-                .setBalance(balance)
-                .build();
-
-        messageProducer.sendMessage(accountEvent, topic);
     }
 }

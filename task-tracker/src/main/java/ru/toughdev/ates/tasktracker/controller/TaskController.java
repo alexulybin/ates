@@ -1,6 +1,5 @@
 package ru.toughdev.ates.tasktracker.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -13,8 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.toughdev.ates.event.task.TaskEventV1;
-import ru.toughdev.ates.event.task.TaskEventV2;
+import ru.toughdev.ates.event.task.TaskAddedEventV1;
+import ru.toughdev.ates.event.task.TaskAddedEventV2;
+import ru.toughdev.ates.event.task.TaskCompletedEventV1;
+import ru.toughdev.ates.event.task.TaskCreatedEventV1;
+import ru.toughdev.ates.event.task.TaskCreatedEventV2;
+import ru.toughdev.ates.event.task.TaskReassignedEventV1;
 import ru.toughdev.ates.tasktracker.dto.CreateTaskDto;
 import ru.toughdev.ates.tasktracker.kafka.MessageProducer;
 import ru.toughdev.ates.tasktracker.model.Task;
@@ -43,11 +46,11 @@ public class TaskController {
     private final MessageProducer messageProducer;
 
     /**
-     * Старая реализация создания таски с отправкой события V1
+     * Старая реализация добавления таски с отправкой события V1
      * Оставлено для тестирования
      */
     @PostMapping("/v1")
-    public @ResponseBody Task createTask(@RequestBody CreateTaskDto dto) throws JsonProcessingException {
+    public @ResponseBody Task addTask(@RequestBody CreateTaskDto dto) {
         var random = new Random();
 
         var fee = random.nextInt(maxFee - minFee) + minFee;
@@ -62,7 +65,7 @@ public class TaskController {
                 .build();
         var saved = taskRepository.saveAndFlush(task);
 
-        var event = TaskEventV1.newBuilder()
+        var eventCreated = TaskCreatedEventV1.newBuilder()
                 .setEventType("TaskCreated")
                 .setPublicId(saved.getPublicId().toString())
                 .setDescription(saved.getDescription())
@@ -70,25 +73,30 @@ public class TaskController {
                 .setFee(saved.getFee())
                 .setReward(saved.getReward())
                 .build();
-        messageProducer.sendMessage(event, "task-stream");
-
-        event = TaskEventV1.newBuilder()
-                .setEventType("TaskAssigned")
-                .setPublicId(saved.getPublicId().toString())
-                .setAssigneeId(user.getPublicId().toString())
-                .build();
-        messageProducer.sendMessage(event, "task-lifecycle");
+        messageProducer.sendMessage(eventCreated, "task-stream");
 
         log.info("Task created " + saved);
+
+        var eventAdded = TaskAddedEventV1.newBuilder()
+                .setEventType("TaskAdded")
+                .setPublicId(saved.getPublicId().toString())
+                .setDescription(saved.getDescription())
+                .setAssigneeId(user.getPublicId().toString())
+                .setFee(saved.getFee())
+                .setReward(saved.getReward())
+                .build();
+        messageProducer.sendMessage(eventAdded, "task-lifecycle");
+
+        log.info("Task added " + saved);
 
         return saved;
     }
 
     /**
-     * Создание таски с отправкой события V2
+     * Добавление таски с отправкой события V2
      */
     @PostMapping
-    public @ResponseBody Task createTaskV2(@RequestBody CreateTaskDto dto) throws JsonProcessingException {
+    public @ResponseBody Task addTaskV2(@RequestBody CreateTaskDto dto) {
         var random = new Random();
 
         var fee = random.nextInt(maxFee - minFee) + minFee;
@@ -106,7 +114,7 @@ public class TaskController {
                 .build();
         var saved = taskRepository.saveAndFlush(task);
 
-        var event = TaskEventV2.newBuilder()
+        var eventCreated = TaskCreatedEventV2.newBuilder()
                 .setEventType("TaskCreated")
                 .setPublicId(saved.getPublicId().toString())
                 .setDescription(saved.getDescription())
@@ -115,14 +123,18 @@ public class TaskController {
                 .setFee(saved.getFee())
                 .setReward(saved.getReward())
                 .build();
-        messageProducer.sendMessage(event, "task-stream");
+        messageProducer.sendMessage(eventCreated, "task-stream");
 
-        event = TaskEventV2.newBuilder()
-                .setEventType("TaskAssigned")
+        var eventAdded = TaskAddedEventV2.newBuilder()
+                .setEventType("TaskAdded")
                 .setPublicId(saved.getPublicId().toString())
+                .setDescription(saved.getDescription())
+                .setJiraId(jiraId)
                 .setAssigneeId(user.getPublicId().toString())
+                .setFee(saved.getFee())
+                .setReward(saved.getReward())
                 .build();
-        messageProducer.sendMessage(event, "task-lifecycle");
+        messageProducer.sendMessage(eventAdded, "task-lifecycle");
 
         log.info("Task created " + saved);
 
@@ -144,7 +156,7 @@ public class TaskController {
     }
 
     @PostMapping("/complete/{taskId}")
-    public void completeTask(@PathVariable String taskId, Authentication authentication) throws JsonProcessingException {
+    public void completeTask(@PathVariable String taskId, Authentication authentication) {
         var login = ((JwtUser) authentication.getPrincipal()).getUsername();
         var user = userRepository.getByLogin(login);
         var task = taskRepository.getByPublicIdAndAssigneeId(UUID.fromString(taskId), user.getId());
@@ -153,14 +165,7 @@ public class TaskController {
             task.setCompleted(true);
             taskRepository.saveAndFlush(task);
 
-            var eventUpdated = TaskEventV1.newBuilder()
-                    .setEventType("TaskUpdated")
-                    .setPublicId(taskId)
-                    .setCompleted(true)
-                    .build();
-            messageProducer.sendMessage(eventUpdated, "task-stream");
-
-            var eventCompleted = TaskEventV1.newBuilder()
+            var eventCompleted = TaskCompletedEventV1.newBuilder()
                     .setEventType("TaskCompleted")
                     .setPublicId(taskId)
                     .setAssigneeId(user.getPublicId().toString())
@@ -175,7 +180,7 @@ public class TaskController {
 
     @PreAuthorize("hasAuthority('admin') or hasAuthority('manager')")
     @PostMapping("/reassign-all")
-    public void reassignAllTasks() throws JsonProcessingException {
+    public void reassignAllTasks() {
         var random = new Random();
         var users = userRepository.findByRoleNotIn(List.of("admin", "manager"));
 
@@ -189,7 +194,7 @@ public class TaskController {
         taskRepository.saveAllAndFlush(tasks);
 
         for (var task : tasks) {
-            var event = TaskEventV1.newBuilder()
+            var event = TaskReassignedEventV1.newBuilder()
                     .setEventType("TaskReassigned")
                     .setPublicId(task.getPublicId().toString())
                     .setAssigneeId(users.stream()
