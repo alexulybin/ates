@@ -74,7 +74,7 @@
         <dependency>
             <groupId>ru.tough-dev.ates</groupId>
             <artifactId>event-schema</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
 
         <dependency>

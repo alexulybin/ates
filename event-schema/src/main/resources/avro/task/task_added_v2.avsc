@@ -1,8 +1,8 @@
 {
      "type": "record",
-     "namespace": "ru.toughdev.ates.event.user",
-     "name": "UserEventV1",
-     "version": "1",
+     "namespace": "ru.toughdev.ates.event.task",
+     "name": "TaskAddedEventV2",
+     "version": "2",
      "fields": [
         { "name": "eventType",
           "type": {
@@ -16,23 +16,30 @@
             "avro.java.string": "String"
           }
         },
-        { "name": "login",
+        { "name": "description",
           "type": {
             "type": "string",
             "avro.java.string": "String"
           }
         },
-        { "name": "email",
+        { "name": "jiraId",
           "type": {
             "type": "string",
             "avro.java.string": "String"
           }
         },
-        { "name": "role",
-          "type": {
-            "type": "string",
-            "avro.java.string": "String"
-          }
+        { "name": "assigneeId",
+          "type": "string",
+          "logicalType": "UUID"
+        },
+        { "name": "fee",
+          "type": "long"
+        },
+        { "name": "reward",
+          "type": "long"
+        },
+        { "name": "completed",
+          "type": "boolean"
         }
      ]
 }

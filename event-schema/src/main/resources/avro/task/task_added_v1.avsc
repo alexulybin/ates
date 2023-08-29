@@ -1,0 +1,39 @@
+{
+     "type": "record",
+     "namespace": "ru.toughdev.ates.event.task",
+     "name": "TaskAddedEventV1",
+     "version": "1",
+     "fields": [
+        { "name": "eventType",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "publicId",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "description",
+          "type": {
+            "type": "string",
+            "avro.java.string": "String"
+          }
+        },
+        { "name": "assigneeId",
+          "type": "string",
+          "logicalType": "UUID"
+        },
+        { "name": "fee",
+          "type": "long"
+        },
+        { "name": "reward",
+          "type": "long"
+        },
+        { "name": "completed",
+          "type": "boolean"
+        }
+     ]
+}

@@ -1,12 +1,12 @@
 package ru.toughdev.ates.tasktracker.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import ru.toughdev.ates.event.user.UserEventV1;
+import ru.toughdev.ates.event.user.UserCreatedEventV1;
 import ru.toughdev.ates.tasktracker.model.User;
 import ru.toughdev.ates.tasktracker.repository.UserRepository;
 
@@ -20,11 +20,11 @@ public class MessageConsumer {
     private final UserRepository userRepository;
 
     @KafkaListener(topics = "user-stream")
-    public void receive(@Payload UserEventV1 event) throws JsonProcessingException {
+    public void receive(@Payload SpecificRecord record) {
+        log.info("Message received : " + record);
 
-        log.info("Message received : " + event);
-
-        if (event.getEventType().equals("UserCreated")) {
+        if (record instanceof UserCreatedEventV1) {
+            var event = (UserCreatedEventV1) record;
             var user = User.builder()
                     .publicId(UUID.fromString(event.getPublicId()))
                     .login(event.getLogin())

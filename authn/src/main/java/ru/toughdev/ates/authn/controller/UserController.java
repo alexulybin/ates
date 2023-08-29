@@ -1,6 +1,5 @@
 package ru.toughdev.ates.authn.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -15,7 +14,7 @@ import ru.toughdev.ates.authn.dto.RegisterUserDto;
 import ru.toughdev.ates.authn.kafka.MessageProducer;
 import ru.toughdev.ates.authn.model.User;
 import ru.toughdev.ates.authn.repository.UserRepository;
-import ru.toughdev.ates.event.user.UserEventV1;
+import ru.toughdev.ates.event.user.UserCreatedEventV1;
 
 @Slf4j
 @RestController
@@ -29,7 +28,7 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('admin')")
     @PostMapping
-    public @ResponseBody User register(@RequestBody RegisterUserDto dto) throws JsonProcessingException {
+    public @ResponseBody User register(@RequestBody RegisterUserDto dto) {
         var user = User.builder()
                 .login(dto.getLogin())
                 .firstName(dto.getFirstName())
@@ -41,7 +40,7 @@ public class UserController {
 
         var registeredUser = userRepository.saveAndFlush(user);
 
-        var event = new UserEventV1(
+        var event = new UserCreatedEventV1(
                 "UserCreated",
                 user.getPublicId().toString(),
                 user.getLogin(),

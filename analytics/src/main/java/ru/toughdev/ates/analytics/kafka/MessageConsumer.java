@@ -7,23 +7,18 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import ru.toughdev.ates.analytics.model.Account;
-import ru.toughdev.ates.analytics.model.Payment;
-import ru.toughdev.ates.analytics.model.Task;
 import ru.toughdev.ates.analytics.model.User;
 import ru.toughdev.ates.analytics.repository.AccountRepository;
-import ru.toughdev.ates.analytics.repository.PaymentRepository;
-import ru.toughdev.ates.analytics.repository.TaskRepository;
 import ru.toughdev.ates.analytics.repository.UserRepository;
-import ru.toughdev.ates.event.account.AccountEventV1;
-import ru.toughdev.ates.event.payment.PaymentEventV1;
-import ru.toughdev.ates.event.task.TaskEventV1;
-import ru.toughdev.ates.event.task.TaskEventV2;
-import ru.toughdev.ates.event.user.UserEventV1;
+import ru.toughdev.ates.analytics.service.PaymentEventHandler;
+import ru.toughdev.ates.analytics.service.TaskEventHandler;
+import ru.toughdev.ates.event.account.AccountBalanceUpdatedEventV1;
+import ru.toughdev.ates.event.payment.PaymentMadeEventV1;
+import ru.toughdev.ates.event.task.TaskCompletedEventV1;
+import ru.toughdev.ates.event.task.TaskCreatedEventV1;
+import ru.toughdev.ates.event.task.TaskCreatedEventV2;
+import ru.toughdev.ates.event.user.UserCreatedEventV1;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.TimeZone;
 import java.util.UUID;
 
 @Slf4j
@@ -32,15 +27,17 @@ import java.util.UUID;
 public class MessageConsumer {
 
     private final UserRepository userRepository;
-    private final TaskRepository taskRepository;
-    private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
 
-    @KafkaListener(topics = "user-stream")
-    public void receiveUserStreamMessage(@Payload UserEventV1 event) {
-        log.info("Message received : " + event);
+    private final TaskEventHandler taskEventHandler;
+    private final PaymentEventHandler paymentEventHandler;
 
-        if (event.getEventType().equals("UserCreated")) {
+    @KafkaListener(topics = "user-stream")
+    public void receiveUserStreamMessage(@Payload SpecificRecord record) {
+        log.info("Message received : " + record);
+
+        if (record instanceof UserCreatedEventV1) {
+            var event = (UserCreatedEventV1) record;
             var user = User.builder()
                     .publicId(UUID.fromString(event.getPublicId()))
                     .login(event.getLogin())
@@ -64,110 +61,39 @@ public class MessageConsumer {
     public void receiveTaskStreamMessage(@Payload SpecificRecord record) {
         log.info("Message received : " + record);
 
-        if (record instanceof TaskEventV1) {
-            handleTaskStreamEvent((TaskEventV1) record);
+        if (record instanceof TaskCreatedEventV1) {
+            taskEventHandler.handle((TaskCreatedEventV1) record);
         }
 
-        if (record instanceof TaskEventV2) {
-            handleTaskStreamEvent((TaskEventV2) record);
-        }
-    }
-
-    private void handleTaskStreamEvent(TaskEventV1 event) {
-        switch (event.getEventType()) {
-            case "TaskCreated":
-                var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
-                var task = Task.builder()
-                        .publicId(UUID.fromString(event.getPublicId()))
-                        .assigneeId(user.getId())
-                        .description(event.getDescription())
-                        .fee(event.getFee())
-                        .reward(event.getReward())
-                        .build();
-
-                taskRepository.save(task);
-                log.info("Task created " + task.getPublicId());
-                break;
-
-            case "TaskUpdated":
-                task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
-                var assigneeId = event.getAssigneeId() == null ? null :
-                        userRepository.getByPublicId(UUID.fromString(event.getAssigneeId())).getId();
-
-                task.setCompleted(Optional.ofNullable(event.getCompleted()).orElse(task.getCompleted()));
-                task.setAssigneeId(Optional.ofNullable(assigneeId).orElse(task.getAssigneeId()));
-                task.setDescription(Optional.ofNullable(event.getDescription()).orElse(task.getDescription()));
-
-                taskRepository.save(task);
-                log.info("Task updated " + task.getPublicId());
-                break;
+        if (record instanceof TaskCreatedEventV2) {
+            taskEventHandler.handle((TaskCreatedEventV2) record);
         }
     }
 
-    // код для обработки V1 и V2 в данном случае пректически иденичный
-    // но в общем случае он может отличаться
-    private void handleTaskStreamEvent(TaskEventV2 event) {
-        switch (event.getEventType()) {
-            case "TaskCreated":
-                var user = userRepository.getByPublicId(UUID.fromString(event.getAssigneeId()));
-                var task = Task.builder()
-                        .publicId(UUID.fromString(event.getPublicId()))
-                        .assigneeId(user.getId())
-                        .description(event.getDescription())
-                        .fee(event.getFee())
-                        .reward(event.getReward())
-                        .build();
+    @KafkaListener(topics = "task-lifecycle")
+    public void receiveTaskLifecycleMessage(@Payload SpecificRecord record) {
+        log.info("Message received : " + record);
 
-                taskRepository.save(task);
-                log.info("Task created " + task.getPublicId());
-                break;
-
-            case "TaskUpdated":
-                task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
-                var assigneeId = event.getAssigneeId() == null ? null :
-                        userRepository.getByPublicId(UUID.fromString(event.getAssigneeId())).getId();
-
-                task.setCompleted(Optional.ofNullable(event.getCompleted()).orElse(task.getCompleted()));
-                task.setAssigneeId(Optional.ofNullable(assigneeId).orElse(task.getAssigneeId()));
-                task.setDescription(Optional.ofNullable(event.getDescription()).orElse(task.getDescription()));
-
-                taskRepository.save(task);
-                log.info("Task updated " + task.getPublicId());
-                break;
+        if (record instanceof TaskCompletedEventV1) {
+            taskEventHandler.handle((TaskCompletedEventV1) record);
         }
     }
 
-    @KafkaListener(topics = "payment-stream")
-    public void receivePaymentStreamMessage(@Payload PaymentEventV1 event) {
-        log.info("Message received : " + event);
+    @KafkaListener(topics = "payment-lifecycle")
+    public void receivePaymentLifecycleMessage(@Payload SpecificRecord record) {
+        log.info("Message received : " + record);
 
-        if (event.getEventType().equals("PaymentCreated")) {
-            var user = userRepository.getByPublicId(UUID.fromString(event.getUserPublicId()));
-            var task = taskRepository.getByPublicId(UUID.fromString(event.getPublicId()));
-
-            var dateTime =
-                    LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getDateTime()),
-                            TimeZone.getTimeZone("UTC").toZoneId());
-
-            var paymentFee = Payment.builder()
-                    .publicId(UUID.fromString(event.getPublicId()))
-                    .taskId(task.getId())
-                    .userId(user.getId())
-                    .amount(event.getAmount())
-                    .type(event.getType())
-                    .dateTime(dateTime)
-                    .build();
-
-            paymentRepository.save(paymentFee);
-            log.info("PaymentCreated " + event.getPublicId());
+        if (record instanceof PaymentMadeEventV1) {
+            paymentEventHandler.handle((PaymentMadeEventV1) record);
         }
     }
 
     @KafkaListener(topics = "account-stream")
-    public void receiveAccountStreamMessage(@Payload AccountEventV1 event) {
-        log.info("Message received : " + event);
+    public void receiveAccountStreamMessage(@Payload SpecificRecord record) {
+        log.info("Message received : " + record);
 
-        if (event.getEventType().equals("AccountUpdated")) {
+        if (record instanceof AccountBalanceUpdatedEventV1) {
+            var event = (AccountBalanceUpdatedEventV1) record;
             var user = userRepository.getByPublicId(UUID.fromString(event.getUserPublicId()));
             var account = accountRepository.getByUserId(user.getId());
 

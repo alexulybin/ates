@@ -13,7 +13,7 @@
 
     <groupId>ru.tough-dev.ates</groupId>
     <artifactId>event-schema</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <properties>
         <maven.compiler.source>14</maven.compiler.source>
@@ -74,17 +74,20 @@
                         <param>http://localhost:8081</param>
                     </schemaRegistryUrls>
                     <subjects>
-                        <user-stream-value>${project.basedir}/src/main/resources/avro/user_event_v1.avsc</user-stream-value>
+                        <user-stream-value>${project.basedir}/src/main/resources/avro/user/user_created_v1.avsc</user-stream-value>
 
-                        <task-stream-value>${project.basedir}/src/main/resources/avro/task_event_v1.avsc</task-stream-value>
-                        <task-stream-value>${project.basedir}/src/main/resources/avro/task_event_v2.avsc</task-stream-value>
-                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task_event_v1.avsc</task-lifecycle-value>
-                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task_event_v2.avsc</task-lifecycle-value>
+                        <task-stream-value>${project.basedir}/src/main/resources/avro/task/task_created_v1.avsc</task-stream-value>
+                        <task-stream-value>${project.basedir}/src/main/resources/avro/task/task_created_v2.avsc</task-stream-value>
 
-                        <payment-stream-value>${project.basedir}/src/main/resources/avro/payment_event_v1.avsc</payment-stream-value>
-                        <payment-lifecycle-value>${project.basedir}/src/main/resources/avro/payment_event_v1.avsc</payment-lifecycle-value>
-                        <account-stream-value>${project.basedir}/src/main/resources/avro/account_event_v1.avsc</account-stream-value>
-                        <account-lifecycle-value>${project.basedir}/src/main/resources/avro/account_event_v1.avsc</account-lifecycle-value>
+                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task/task_added_v1.avsc</task-lifecycle-value>
+                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task/task_added_v2.avsc</task-lifecycle-value>
+                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task/task_reassigned_v1.avsc</task-lifecycle-value>
+                        <task-lifecycle-value>${project.basedir}/src/main/resources/avro/task/task_completed_v1.avsc</task-lifecycle-value>
+
+                        <payment-lifecycle-value>${project.basedir}/src/main/resources/avro/payment/payment_made_v1.avsc</payment-lifecycle-value>
+
+                        <account-stream-value>${project.basedir}/src/main/resources/avro/account/account_balance_updated_v1.avsc</account-stream-value>
+                        <account-lifecycle-value>${project.basedir}/src/main/resources/avro/account/daily_reward_paid_v1.avsc</account-lifecycle-value>
                     </subjects>
                 </configuration>
                 <goals>

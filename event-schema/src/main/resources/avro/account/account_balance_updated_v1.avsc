@@ -1,7 +1,7 @@
 {
      "type": "record",
      "namespace": "ru.toughdev.ates.event.account",
-     "name": "AccountEventV1",
+     "name": "AccountBalanceUpdatedEventV1",
      "version": "1",
      "fields": [
         { "name": "eventType",
